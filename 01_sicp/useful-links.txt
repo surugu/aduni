@@ -1,0 +1,32 @@
+SICP videos from MIT (based on 1985 edition of the book) 
+http://swiss.csail.mit.edu/classes/6.001/abelson-sussman-lectures/
+
+SICP full online text 
+http://mitpress.mit.edu/sicp/full-text/book/book.html
+
+Revised (4) Report on the Algorithmic Language Scheme 
+http://www-swiss.ai.mit.edu/~jaffer/r4rs_toc.html
+
+The Internet Scheme Repository 
+http://www.cs.indiana.edu/scheme-repository/
+
+schemers.org 
+http://www.schemers.org/
+
+Holly's recitation for 6.001, the MIT SICP course 
+http://www.ai.mit.edu/people/holly/6.001/
+
+6.001 course page 
+http://sicp.ai.mit.edu/
+
+6.001 archive 
+http://sicp.ai.mit.edu/Spring-2001/archive.html
+
+another 6.001 archive 
+http://www.swiss.ai.mit.edu/classes/6.001/
+
+The Little Schemer 
+http://www.cs.rice.edu/~matthias/TLS/
+
+Chez Scheme
+http://www.cs.indiana.edu/hyplan/dyb/cs.html
