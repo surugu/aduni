@@ -1,0 +1,269 @@
+<html>
+<head>
+<title>ADU SICP, Lecture 4 Notes, October 2000</title> 
+</head>
+<body>
+<center>
+<h1>ArsDigita University, Structure and Interpretation of Computer Programs</h1>
+<h1>Lecture Notes for Lecture 4 -- October 2000</h1>
+</center>
+
+Topics covered in today's lecture:
+<ul>
+<li><a href="#og">Orders of Growth</a>
+<li><a href="#ri">Recursion and Iteration</a>
+<li><a href="#og-why">Orders of Growth: Why does it matter?</a>
+</ul>
+<hr>
+
+The code for today's lecture is called orders-growth.scm.
+
+<h2><a name="og">Orders of Growth</a></h2>
+
+<tt>n</tt> is a parameter that measures the size of the problem.
+<p>
+<tt>R(n)</tt> is the amount of resources required.  We will look at
+space, <tt>S(n)</tt>, and time, <tt>T(n)</tt>.
+<p>
+<tt>R(n)</tt> has order of growth <tt>Theta(f(n))</tt>,
+<tt>R(n)=Theta(f(n))</tt>, iff there exist positive constants <tt>k1</tt> and
+<tt>k2</tt> independent of <tt>n</tt> such that
+<p>
+<tt>k1*f(n) <= R(n) <= k2*f(n)</tt>
+<p>
+for any sufficiently large value of <tt>n</tt>.
+
+<h2><a name="ri">Recursion and Iteration</a></h2>
+
+When multiplying, we can add the first operand to itself the number of times given by the second operand:
+
+<pre><tt>
+(mult 3 4) => 3 + 3 + 3 + 3
+<tt></pre>
+
+We can use <b>recursion</b> to write this procedure.  In recursion,
+the problem is broken up into parts then built back up.  Recursion is
+sometimes called "wishful thinking", where we say that we know what to
+do for a problem operating on <tt>n</tt> if only we could solve the
+problem for <tt>(- n 1)</tt>.
+<p>
+Using this idea, <tt>(mult 3 4)</tt> will be equal to <tt>3 + (mult 3 3)</tt> and
+<tt>(mult 3 3) is going to be equal to <tt>3 + (mult 3 2)</tt>.
+Finally, we'll get to <tt>(mult 3 0)</tt>, which will be called the
+<b>base case</b>.  This is the point at which we stop calling
+<tt>mult</tt> recursively and return a single value.
+
+<pre><tt>
+(define mult
+   (lambda (x y)
+      (if (= y 0)
+          0
+          (+ x 
+             (mult x (- y 1))))))
+</tt></pre>
+
+Let's follow this through, using a slightly simplified substitution model:
+
+<pre><tt>
+(mult 3 4)
+(+ 3 (mult 3 3))
+(+ 3 (+ 3 (mult 3 2)))
+(+ 3 (+ 3 (+ 3 (mult 3 1))))
+(+ 3 (+ 3 (+ 3 (+ 3 (mult 3 0)))))
+(+ 3 (+ 3 (+ 3 (+ 3 0))))
+(+ 3 (+ 3 (+ 3 3)))
+(+ 3 (+ 3 6))
+(+ 3 9)
+12
+</tt></pre>
+
+This procedure has T(n) = Theta(n) and S(n) = Theta(n).  T(n) is the
+order of growth in terms of time, which is linear.  S(n) is the order
+of growth in terms of space, which is also linear.
+<p>
+Observe the shape of the substitution model steps above: it arcs out
+then back in.  There are deferred operations that must wait until we
+reach the base case.  This is a <b>recursive process</b>: deferred
+operations are stored on the stack.
+<p>
+A process with no deferred operations is called an <b>iterative process</b>.
+We can rewrite our <tt>mult</tt> procedure iteratively:
+
+<pre><tt>
+(define mult
+   (lambda (x y)
+      (define mult-helper
+         (lambda (y ans)
+            (if (= y 0)
+                ans
+                (mult-helper (- y 1) (+ x ans)))))))
+</tt></pre>
+
+Note: up until now, we have been using <tt>lambda</tt> when defining
+procedures.  We will now start to use the sugared version for defining
+procedures.  We rewrite the iterative version of mult here to show the difference:
+
+<pre><tt>
+(define (mult x y)
+   (define (mult-helper y ans)
+      (if (= y 0)
+          ans
+          (mult-helper (- y 1) (+ x ans)))))))
+</tt></pre>
+
+Let's follow through the evaluation of <tt>(mult x y)</tt>, again
+using a simplified substitution model:
+
+<pre><tt>
+(mult 3 4)
+(mult-helper 4 0)
+(mult-helper 3 3)
+(mult-helper 2 6)
+(mult-helper 1 9)
+(mult-helper 0 12)
+12
+</tt></pre>
+
+Again, note the shape of this computation, which is a straight line.
+There are no deferred operations, making it an iterative process.
+Iterative processes use constant space, which we write as S(n) =
+Theta(1).  The procedure still requires linear time: T(n) = Theta(n).
+<p>
+<ul>
+<li>A <b>recursive process</b> has delayed operations.
+<li>An <b>iterative process</b> uses state variables and has no delayed operations.
+</ul>
+Both are <b>recursive procedures</b> since they call themselves.
+<b>Process</b> describes if operators are delayed or not.
+<p>
+Scheme is <b>tail-recursive</b>: it executes an iterative process in
+constant space.  C and Pascal are not tail-recursive; the memory grows
+with the number of procedure calls.
+<p>
+Now let's write a faster version of our procedure to multiply by adding:
+
+<pre><tt>
+(define (fast-mult a b)
+   (cond ((= b 0) 0)
+         ((even? b) (fast-mult (double a) (halve b)))
+         (else (+ a (fast-mult a (- b 1))))))
+</tt></pre>
+
+Let's follow the computation of <tt>(fast-mult 10 12)</tt>:
+
+<pre><tt>
+(fast-mult 10 12) 
+(fast-mult 20 6)
+(fast-mult 40 3)
+(+ 40 (fast-mult 40 2))
+(+ 40 (fast-mult 80 1))
+(+ 40 (+ 80 (fast-mult 80 0)))
+(+ 40 (+ 80 0))
+(+ 40 80)
+120
+</tt></pre>
+
+For this procedure, <tt>T(n)=Theta(log n)</tt> and <tt>S(n)=Theta(log
+n)</tt>.  You can characterize Theta(log n) by thinking of the work
+being divided in half at each time step.
+<p>
+And another version of multiplying by adding:
+
+<pre><tt>
+(define (fast-mult-2 a b)
+   (define (times-iter a b result)
+      (cond ((= b 0) result)
+            ((even? b) (times-iter (double a) (halve b) result))
+            (else (times-iter a (- b 1) (+ a result)))))
+   (times-iter a b 0))
+</tt></pre>
+
+Let's follow through the evaluation of <tt>(fast-mult-2 10 12)</tt>:
+
+<pre><tt>
+(fast-mult-2 10 12)
+(times-iter 10 12 0)
+(times-iter 20 6 0)
+(times-iter 40 3 0)
+(times-iter 40 2 40)
+(times-iter 80 1 40)
+(times-iter 80 0 120)
+120
+</tt></pre>
+
+This procedure has <tt>T(n)=Theta(log n)</tt> and <tt>S(n)=Theta(1)</tt>.
+
+<h3>Towers of Hanoi</h3>
+
+In the Towers of Hanoi, a tower of disks stacked in descending size
+with the smallest on top needs to be moved from one peg to another
+peg, using a third peg as temporary storage.  The disks can only be
+moved one at a time and no disk may be placed on top of a disk that is
+smaller than it.  See the videotape of the lecture for a demonstration
+of moving disks from one peg to another.
+<p>
+This problem can be solved using the principle of "wishful thinking."
+For a tower of 4 disks, if we could move the top 3 to the extra peg,
+then we could move the bottom disk to the destination peg and move the
+tower of size 3 to the destination peg from the extra peg.  
+<p>
+<tt><pre>
+(define (move-tower size from to extra)
+   (cond ((= size 0) nil)
+         (else
+            (move-tower (- size 1) from extra to)
+            (print-move from to)
+            (move-tower (- size 1) extra to from))))
+
+(define (print-move from to)
+   (newline)
+   (display "Move top disk from ")
+   (display from)
+   (display " to ")
+   (dispaly to))
+</pre></tt>
+
+This code is Theta(2^n) in terms of time and Theta(n) in terms of time.
+
+
+
+<h2><a name="og-why">Orders of Growth: Why does it matter?</a></h2>
+
+<h3>Why do we care?</h3>
+<table border>
+<tr><th><th>2<th>10<th>100</tr>
+<tr><th align=left>Constant: Theta(1)<td>1<td>1<td>1</tr>
+<tr><th align=left>Logarithmic:  Theta(log n)<td>1<td>3.33<td>6.66</tr>
+<tr><th align=left>Linear: Theta(n)<td>2<td>10<td>100</tr>
+<tr><th align=left>Quadratic: Theta(n^2)<td>4<td>100<td>10,000</tr>
+<tr><th align=left>Exponential: Theta(2^n)<td>4<td>1024<td>~1.26 x 10^30</tr>
+</table>
+<p>
+At 1 billion operations per second, if you were to run an exponential
+time algorithm in the lab on a data set of size n=100, you would be
+waiting for approximately 4 x 10^11 <b>centuries</b> for the code to
+finish running!
+
+<h3>Space and Time</h3> 
+When we talk about order of growth in terms of
+<b>time</b>, we are counting the <b>number of operations</b> as a
+function of the input size.<p> When we talk about order of growth in
+terms of <b>space</b>, we are counting the <b>number of delayed
+operations</b> as a function of the input size.<p>
+
+<h3>Iterative vs. Recursive Processes</h3>
+By definition, an iterative process uses constant space.  A process is
+recursive if it is not iterative (that is, it uses more than constant
+space).<p> Note that procedures that give rise to iterative processes
+may be recursive procedures (that is, procedures that call
+themselves).
+
+<p> <br clear=all> <p> 
+<hr> 
+
+<font size="-1">
+
+Last update: October 2000
+</font> 
+</body> 
+</html>

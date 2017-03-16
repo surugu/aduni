@@ -1,0 +1,183 @@
+<html>
+<head>
+<title>ADU SICP, Lecture 5 Notes, 5 October 2000</title> 
+</head>
+<body>
+<center>
+<h1>ArsDigita University, Structure and Interpretation of Computer Programs</h1>
+<h1>Lecture Notes for Lecture 5 -- 5 October 2000</h1>
+</center>
+
+Topics covered in today's lecture:
+<ul>
+<li><a href="#abs">Data Abstraction</a>
+</ul>
+<hr>
+
+<h2><a name="abs">Data Abstraction</a></h2>
+
+<h3>Arithmetic with Rational Numbers</h3>
+
+n1/d1 + n2/d2 = (n1*d2 + n2*d1) / (d1*d2)
+<p>
+n1/d1 - n2/d2 = (n1*d2 - n2*d1) / (d1*d2)
+<p>
+n1/d1 * n2/d2 = (n1*n2) / (d1*d2)
+<p>
+(n1/d1) / (n2/d2) = (n1*d2) / (d1*n2)
+<p>
+n1/d1 = n2/d2 iff n1*d2 = n2*d1
+<p>
+
+Assume that we have a constructor called <tt>make-rat</tt>, which
+takes a numerator and a denominator and returns a rational number
+representation.  Also assume that we have two selectors,
+<tt>numer</tt> and <tt>denom</tt>.  Both selectors take a rational
+number representation.  <tt>numer</tt> returns the numerator of the
+rational number and <tt>denom</tt> returns the denominator of the
+rational number.
+
+<tt><pre>
+(define (add-rat x y)
+   (make-rat (+ (* (numer x) (denom y))
+                (* (numer y) (denom x)))
+             (* (denom x) (denom y))))
+
+(define (sub-rat x y)
+   (make-rat (- (* (numer x) (denom y))
+                (* (numer y) (denom x)))
+             (* (denom x) (denom y))))
+
+(define (mul-rat x y)
+   (make-rat (* (numer x) (numer y))
+             (* (denom x) (denom y))))
+
+(define (div-rat x y)
+   (make-rat (* (numer x) (denom y))
+             (* (denom x) (numer y))))
+
+(define (equal-rat? x y)
+   (= (* (numer x) (denom y))
+      (* (numer y) (denom x))))
+</pre></tt>
+
+We could also write <tt>sub-rat</tt> by writing <tt>negate-rat</tt>
+then using it and <tt>add-rat</tt> to define <tt>sub-rat</tt>:
+
+<tt><pre>
+(define (negate-rat x)
+   (make-rat (- (numer x))
+             (denom x)))
+
+(define (sub-rat x y)
+   (add-rat x (negate-rat y)))
+</pre></tt>
+
+How can we write the constructors and selectors?  Scheme has a
+compound structure called a pair which is constructed with the
+primitive procedure <tt>cons</tt>.  <tt>cons</tt> takes two arguments
+and returns a compound data object containing the two arguments as
+parts.
+
+<tt><pre>
+(define a (cons 2 3)
+</pre></tt>
+
+We can draw box and pointer diagrams to represent cons cells.  A cons
+cell is drawn as two connected squares.  For the example above, the
+first square would have an arrow pointing to the number 2 and the
+second box would have an arrow pointing to the number 3.  See the book
+or the videotaped lecture to see what they look like.
+<p>
+
+How do we get the elements from a pair?  The first box of the cons
+cell is called the car.  We would write <tt>(car a)</tt>, which would
+return the number 2.  The second box of the cons cell is called the
+cdr.  We would write <tt>(cdr a)</tt>, which would return the number
+3.
+<p>
+Cons pairs have the property of closure.  Anything constructed by cons
+can be used as an input element to cons.  For example,
+
+<tt><pre>
+(define b (cons 7 8))
+
+(define c (cons b 9))
+</pre></tt>
+
+How can we extract 7 from these pairs? <tt>(car b)</tt> or <tt>(car
+(car c))</tt>.  We can also write <tt>(car (car c))</tt> as <tt>(caar
+c)</tt>.  
+<p>
+How can we get 8 from these pairs?  <tt>(cdr b)</tt> or <tt>(cdr (car
+c))</tt> (which can also be written as <tt>(cdar c)</tt>).
+<p>
+Finally, how can we get 9?  <tt>(cdr c)</tt>
+<p>
+
+Now that we know about <tt>cons</tt>, <tt>car</tt> and <tt>cdr</tt>,
+let's write <tt>make-rat</tt>, <tt>numer</tt> and <tt>denom</tt>.
+
+<tt><pre>
+(define (make-rat n d) 
+   (cons n d))
+
+(define (numer x)
+   (car x))
+
+(define (denom x) 
+   (cdr x))
+</pre></tt>
+
+These could also be written as follows:
+
+<tt><pre>
+(define make-rat cons)
+
+(define numer car)
+
+(define denom cdr)
+</pre></tt>
+
+And how can we display a rational number?
+
+<tt><pre>
+(define (print-rat x)
+   (newline)
+   (display (numer x))
+   (display "/")
+   (display (denom x)))
+</pre></tt>
+
+We're not reducing the rational numbers to the lowest terms.  How
+could we do this?  By changing <tt>make-rat</tt>:
+
+<tt><pre>
+(define (make-rat n d)
+   (let ((g (gcd n d)))
+      (cons (/ n g) (/ d g))))
+</pre></tt>
+
+We could also implement <tt>make-rat</tt> as a procedure:
+
+<tt><pre>
+(define (make-rat n d)
+   (lambda (proc) (proc n d)))
+
+(define (numer x)
+   (x (lambda (a b) a)))
+
+(define (denom x)
+   (y (lambda (a b) b)))
+</pre></tt>
+
+
+<p> <br clear=all> <p> 
+<hr> 
+
+<font size="-1">
+
+Last update: October 2000
+</font> 
+</body> 
+</html>

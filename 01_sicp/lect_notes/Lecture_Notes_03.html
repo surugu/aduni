@@ -1,0 +1,223 @@
+<html>
+<head>
+<title>ADU SICP, Lecture 3 Notes, October 2000</title> 
+</head>
+<body>
+<center>
+<h1>ArsDigita University, Structure and Interpretation of Computer Programs</h1>
+<h1>Lecture Notes for Lecture 3 -- October 2000</h1>
+</center>
+
+Topics covered in today's lecture:
+<ul>
+<li><a href="#hop">Higher Order Procedures</a>
+<ul>
+<li><a href="#sum">Summing</a>
+<li><a href="#return">Procedures that return procedures</a>
+<li><a href="#mult">Multiplying: A Different Take on Sum</a>
+</ul>
+<li><a href="#let">Let there be local variables</a>
+</ul>
+<hr>
+<p>
+The code for this lecture is called higher-order-procs.scm.  This file
+may be run if you wish to experiment with the code from the lecture.
+<p>
+<h2><a name="hop">Higher Order Procedures</a></h2>
+
+Higher-order procedures are procedures that manipulate other procedures.
+<p>
+Procedures have first-class status in Scheme.
+<ul>
+<li>They may be named by variables.
+<li>They may be passed as arguments to procedures.
+<li>They may be returned as the results of procedures.
+<li>They may be included in data structures.  (We'll see examples of this once we see some data structures, but not today.)
+</ul>
+
+
+<h3><a name="sum">Summing</a></h3>
+
+<pre><tt>
+(define sum
+   (lambda (term a next b)
+      (if (> a b)
+          0
+          (+ (term a)
+             (sum term
+                  (next a)
+                  next
+                  b)))))
+</tt></pre>
+
+To compute the sum for i=1 to n of i, we write
+
+<pre><tt>
+(sum (lambda (x) (x))
+     1
+     (lambda (x) (+ x 1))
+     n)
+</tt></pre>
+
+How do we compute the sum for i=1 to n of 1/i)?
+
+<pre><tt>
+(sum (lambda (x) (/ 1 x))
+     1
+     (lambda (x) (+ 1 x))
+     n)
+</tt></pre>
+
+
+How about the sum for i=1 to n of i^3+2i?
+<pre><tt>
+(sum (lambda (x) (+ (* x x x) (* 2 x)))
+     1
+     (lambda (x) (+ 1 x))
+     n)
+</tt></pre>
+
+<h3><a name="return">Procedures that return procedures</a></h3>
+
+Here is a procedure for exponentiation:
+
+<pre><tt>
+(define expt
+   (lambda (b n)
+      (if (= n 0)
+          1
+          (* b (expt b (- n 1))))))
+</tt></pre>
+
+How could we use this procedure to allow us to create procedures to
+calculate n^2, n^3, n^4, etc?
+
+<pre><tt>
+(define make-expt
+   (lambda (n)
+      (lambda (b) (expt b n))))
+</tt></pre>
+
+Now, let's use the make-expt procedure we just wrote to define 
+square.
+
+<pre><tt>
+(define square
+   (make-expt 2))
+</tt></pre>
+
+And use <tt>make-expt</tt> to write <tt>cube</tt>:
+
+<pre><tt>
+(define cube
+   (make-expt 3))
+</tt></pre>
+
+How do we define a procedure to return n^8?
+
+<pre><tt>
+(define power-8
+   (make-expt 8))
+</tt></pre>
+
+<h3><a name="mult">Multiplying: A Different Take on Sum</a></h3>
+
+Let's write a procedure to compute the product for i=1 to n of f(n).  Note 
+the similarity to the sum procedure above.  
+
+<pre><tt>
+(define prod
+   (lambda (term a next b)
+      (if (> a b)
+          1
+          (* (term a)
+             (prod term
+                   (next a)
+                   next
+                   b)))))
+</tt></pre>
+
+Use prod to calculate the product for i=1 to 10 of 1/i.
+
+<pre><tt>
+(prod (lambda (x) (/ 1 x))
+     1
+     (lambda (x) (+ 1 x))
+     10)
+</tt></pre>
+
+Use prod to calculate the product for i=2 to 100 (i even) for i^2.
+
+<pre><tt>
+(prod (lambda (x) (* x x))
+     2
+     (lambda (x) (+ 2 x))
+     100)
+</tt></pre>
+
+<h2><a name="let">Let there be local variables</a></h2>
+
+The general format of the let statement is
+
+<pre><tt>
+(let ((&#60;var1&#62; &#60;exp1&#62;)
+      (&#60;var2&#62; &#60;exp2&#62;)
+      ...
+      (&#60;varn&#62; &#60;expn&#62;))
+  &#60;body&#62;)
+</tt></pre>
+
+The let statement is equivalent to the following
+
+<pre><tt>
+((lambda (&#60;var1&#62; &#60;var2&#62; ... &#60;varn&#62;)
+     &#60;body&#62;)
+ &#60;exp1&#62;
+ &#60;exp2&#62;
+ ... 
+ &#60;expn&#62;)
+</tt></pre>
+
+For example,
+
+<pre><tt>
+(let ((a 2)
+      (b 3) 
+      (c 4))
+   (+ a b c))
+</tt></pre>
+
+de-sugars into
+
+<pre><tt>
+((lambda (a b c) (+ a b c)) 2 3 4)
+</tt></pre>
+
+which would return <tt>9</tt>.
+
+<pre><tt>
+(define procedure-with-let
+   (lambda (x)
+      (let ((a (+ x 2))
+            (b (* x 3)))
+         (+ a b))))
+</tt></pre>
+
+What will be returned by the following call?
+
+<pre><tt>
+(procedure-with-let 4)
+</tt></pre>
+<p>
+<pre><tt>=&#62;  18</tt></pre>
+
+
+<p> <br clear=all> <p> 
+<hr> 
+
+<font size="-1">
+
+Last update: October 2000
+</font> 
+</body> 
+</html>

@@ -1,0 +1,226 @@
+<html>
+<head>
+<title>ADU SICP, Lecture 1 Notes, 1 October 2000</title> 
+</head>
+<body>
+<center>
+<h1>ArsDigita University, Structure and Interpretation of Computer Programs</h1>
+<h1>Lecture Notes for Lecture 1 -- 1 October 2000</h1>
+</center>
+
+Topics covered in today's lecture:
+<ul>
+<li>Syllabus, especially signing up for tutorials and lunches
+<li><a href="#fit">How does this course fit into the ADU curriculum?</a>
+<li><a href="#intro">Intro to Scheme</a>
+<li><a href="#mantra">Mantras</a>
+<li><a href="#lambda">Lambda</a>
+<li><a href="#define">Define</a>
+<li><a href="#special">More Special Forms:</a> <tt>and</tt>, <tt>or</tt>,
+<tt>if</tt> and <tt>cond</tt>
+</ul>
+<hr>
+
+<h2><a name="fit">How does this course fit inot the ADU
+curriculum?</a></h2>
+
+This course is the first programming course at ADU, taught in Scheme.
+Scheme is a useful language for an intro class because we can teach
+you about its syntax in a very short time (in fact, in this lecture
+alone) and you can start writing programs immediately.  Scheme allows
+us to focus on concepts rather than syntax.
+<p>
+Looking at the upcoming courses at ADU, here are some ways that the
+material in this class applies to the upcoming courses:
+<ul>
+<li> Discrete Math: Shai plans to use Scheme for a problem set on RSA
+encription.
+<li> How Computers Work: register machines in this course will be seen
+again 
+<li> Object-Oriented Programming: you'll see object-oriented concepts
+introduced in this class
+<li> Algorithms: we'll cover some basic analysis of algorithms in
+terms of space and time.  You'll also be designing algorithms to
+complete the problem sets.
+<li> Banzai AI: will either use Scheme or CommonLISP (similar to
+Scheme)
+</ul>
+Additionally, we'll touch on compilers in this course.  Compilers are
+not in the ADU curriculum, but it's good to understand how one might
+write a compiler.
+
+<h2><a name="intro">Intro to Scheme</a></h2>
+
+Every powerful language has
+<ul>
+<li> primitive expressions: the simplest entities, such as <tt>3</tt> and <tt>+</tt>
+<li> means of combination: buidling compound elements from simpler
+ones such as <tt>(+ 3 4)</tt>
+<li> means of abstraction: a way for naming compound elements and then
+manipulating them as units such as <tt>(define square (lambda (x) (* x x)))</tt>
+</ul>
+<p>
+Scheme does the following three things:
+<ol>
+<li>Reads an expression
+<li>Evaluates it to produce a value
+<li>Prints the value
+</ol>
+<p>
+The returned value has a small set of types, including number, boolean
+and procedure.  (Later, we'll see symbol, pair, vector, and promise (stream).)
+<p>
+There are 4 types of expressions:
+<ol>
+<li> Constants: numbers, booleans.  Examples: <tt>4 3.141592 #t #f</tt>
+<li> Variables: names for values.  We create these using the special
+form define
+<li> Special forms: have special rules for evaluation.  In addition,
+you may not redefine a special form.
+<li> Combinations: (&#60;operator&#62; &#60;operands&#62;).  These are sometimes
+called "function calls" or "procedure applications."
+</ol>
+<p>
+The first two types of expressions (constants and variables) are
+primitive expressions -- they have no parentheses.  The second two
+types are called compound expressions -- they have parentheses.
+
+<h2><a name="mantra">Mantras</a></h2>
+<ol>
+<li>Every expression has a value (except for errors, infinite loops
+and the define special form)
+<li>To find the value of a combination,
+<ul>
+<li>Find values of all subexpressions in any order
+<li>Apply the value of the first to the values of the rest
+</ul>
+<li>The value of a lambda expression is a procedure
+</ol>
+<p>
+
+<h2><a name="lambda">Lambda</a></h2>
+When you hear the words "write a procedure," you should think of 
+<b>lambda</b>.  Lambda is a <b>special form</b> that creates a procedure.
+There are three parts to the lambda expression:
+
+<ol>
+<li>lambda
+<li>parameter list
+<li>body
+</ol>
+
+For example, let's write a procedure to square a number:<p>
+<tt>(lambda (x) (* x x))</tt>
+
+<ul>
+<li><tt>(x)</tt> is the parameter list.  In this case, we only have one 
+parameter.
+<li><tt>(* x x)</tt> is the body of the lambda.  The body of the
+lambda will not be evaluated until the procedure is applied.
+</ul>
+
+How do we use this procedure that we just wrote?  Well, we can
+write<br>
+<tt>((lambda (x) (* x x)) 3)</tt>
+<p>
+This will return 9.
+<p>
+If we want to square 9, we can write<br>
+<tt>((lambda (x) (* x x)) 9)</tt>
+<p>
+But we don't want to have to keep typing the procedure over and 
+over.  This leads us to another special form: <b>define</b>.
+
+<h2><a name="define">Define</a></h2>
+Define is a <b>special form</b> that allows us to name 
+objects.  Define has three parts:
+<ol>
+<li>define
+<li>name
+<li>the object you want the name to be bound to
+</ol>
+Here are some examples:<br>
+<pre>
+<tt>
+(define pi 3.141592)
+(define four 8)
+</tt>
+</pre>
+<p>
+We can use define to name our procedure we wrote above to allow 
+us to use it without having to retype the lambda expression over and
+over.
+<p>
+<tt>
+(define square (lambda (x) (* x x)))
+</tt>
+
+
+<h2><a name="special">Special Forms Have Special Rules</a></h2>
+
+Recall that special forms are those expressions that begin with an
+open parenthesis followed by one of the 15 "magic words": <p>
+<tt>and, begin, case, cond, define, do, if, lambda, let, let*, letrec,
+or, quasiquote, quote, set!</tt>
+<p>
+Special forms have special rules for their evaluation.  Recall from
+the mantras that to find the value of a combination, you find the
+values of all of the subexpressions in any order.  With special forms,
+this is not done.  The order of the evaluation of the subexpressions
+is specified for each special form.
+
+<hr>
+<tt>
+(and &#60;exp1&#62; &#60;exp2&#62; ...)
+</tt><p>
+And evaluates the expressions one at a time in left to right order.
+As soon as one of the expressions evaluates to #f (false), the value
+of the and expression is #f (false) and none of the remaining
+expressions are evaluated.
+
+<hr>
+<tt>
+(or &#60;exp1&#62; &#60;exp2&#62; ...)
+</tt><p>
+Or evaluates the expressions one at a time in left to right order.  As
+soon as one of the expressions evaluates to #t (true), the value of
+the or expression is #t (true) and none of the remaining expressions
+are evaluated.
+
+<hr>
+<tt>
+(if &#60;predicate&#62; &#60;consequent&#62; &#60;alternative&#62;)
+</tt><p>
+The predicate is evaluated.  If it is true, the value of the
+consequent will be returned.  If it is false, the value of the
+alternative will be returned.  In this special form, never will the
+consequent and alternative both be evaluated.
+<hr>
+<pre><tt>
+(cond (&#60;pred1&#62; &#60;exp1&#62;)
+      (&#60;pred2&#62; &#60;exp2&#62;)
+      ...
+      (else &#60;expn&#62;))
+</tt>
+</pre><p>
+The first predicate is evaluated.  If it is true, the value of the
+first expression will be returned.  If it is false, the second
+predicate will be evaluated.  The computer will continue to evaluate
+the predicates until one is true.  The value of the expression
+corresponding to the true predicate will be returned.  Note that the
+else will always be true.
+
+<p> <br clear=all> <p> 
+<hr> 
+
+<font size="-1">
+
+Written by: <a href="mailto:hyanco@arsdigita.org">Holly Yanco</a><br>
+Last update: 1 October 2000
+</font> 
+</body> 
+</html>
+
+
+
+

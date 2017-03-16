@@ -1,0 +1,295 @@
+<html>
+<head>
+<title>ADU SICP, Lecture 2 Notes, 2 October 2000</title> 
+</head>
+<body>
+<center>
+<h1>ArsDigita University, Structure and Interpretation of Computer Programs</h1>
+<h1>Lecture Notes for Lecture 2 -- 2 October 2000</h1>
+</center>
+
+Topics covered in today's lecture:
+<ul>
+<li><a href="#mantra">Mantra Review</a>
+<li><a href="#subst">The Substitution Model</a>
+<li><a href="#appnor">Applicative and Normal Order</a>
+<li><a href="#if">Writing our own if</a>
+</ul>
+<hr>
+
+<h2><a name="mantra">Mantra Review</a></h2>
+<ol>
+<li>Every expression has a value  (exceptions: errors, infinite loops and define)
+<li>To find the value of a combination,
+<ul>
+<li>Find the values of all of the subexpressions, in any order
+<li>Apply the value of the first to the values of the rest
+</ul>
+<li>The value of a lambda expession is a procedure
+</ol>
+
+<p>
+<h2><a name="subst">The Substitution Model:  You can evaluate it from here</a></h2>
+Recall the second mantra:<br>
+To find the value of a combination,
+<ul>
+<li>Find the values of all of the subexpressions, in any order
+<li>Apply the value of the first to the values of the rest
+</ul>
+<p>
+To apply a compound procedure to arguments using the substitution model, evaluate the body of the procedure with each formal parameter replaced by the corresponding argument.
+
+<h3>To review:</h3>
+<tt>
+(lambda (x) (* x x))
+</tt>
+<p>
+What is/are the parameters? <br>
+ <tt>x</tt> is the only parameter in the parameter list <tt>(x)</tt>.
+<p>
+What is the body?<br>
+<tt>(* x x)</tt> is the body of the <tt>lambda</tt> expression.
+<p>
+
+<b>Substitution Model:</b>  To apply a compound procedure to arguments, evaluate the body of the procedure with each formal parameter replaced by the corresponding argument.
+
+<h3>Substitution Examples</h3>
+
+<pre>
+<tt>
+(define absolute-value
+   (lambda (n)
+      (if (< n 0)
+          (- n)
+          n)
+</tt>
+</pre>
+
+Using the substitution model to evaluate <tt>(absolute-value (+ 3 -8))</tt>:
+<p>
+(Note: this appeared on the board in a different format.  The
+evaluated expressions were drawn in boxes.  Below, the evaluated
+expressions have "**" before and after them.)
+<p>
+<pre>
+<tt>
+(absolute-value (**add** 3 -8))
+(absolute-value (**add** 3 **-8**))
+(absolute-value (**add** **3** **-8**))
+(absolute-value **-5**)
+(**proc (n) (if (< n 0) (- n) n))** **-5**)
+(if (< **-5** 0) (- **-5**) **-5**))
+(**less than** **-5** 0)
+(**less than** **-5** **0**)
+**true**
+(**negate** **-5**)
+**5**
+</tt>
+</pre>
+<p>
+Computing the Euclidean distance between two points:
+<p>
+<pre><tt>
+(define square
+   (lambda (x) (* x x)))
+
+(define sum-squares
+   (lambda (x y) (+ (square x) (square y))))
+
+(define dist-between-pts
+   (lambda (x1 y1 x2 y2)
+      (sqrt (sum-squares (- x1 x2) (- y1 y2)))))
+</tt></pre>
+
+Using the substitution model to evaluate <tt>(dist-between-pts 1 1 4 5)</tt>:
+<p>
+<pre><tt>
+(dist-between-pts 1 1 4 5)
+(dist-between-pts 1 **1** 4 5)
+(dist-between-pts 1 **1** **4** 5)
+(dist-between-pts **1** **1** **4** 5)
+(**proc (x1 y1 x2 y2) (sqrt (sum-squares (- x1 x2) (- y1 y2)))** **1** **1** **4** 5)
+(**proc (x1 y1 x2 y2) (sqrt (sum-squares (- x1 x2) (- y1 y2)))** **1** **1** **4** **5**)
+(sqrt (sum-squares (- **1** **4**) (- **1** **5**)))
+(sqrt (sum-squares (**sub** **1** **4**) (- **1** **5**)))
+(sqrt (sum-squares **-3** (- **1** **5**)))
+(sqrt (sum-squares **-3** (**sub** **1** **5**)))
+(sqrt (sum-squares **-3** **-4**))
+(sqrt (**proc (x y) (+ (square x) (square y))**  **-3** **-4**))
+(sqrt (+ (square **-3**) (square **-4**)))
+(sqrt (+ (square **-3**) (**proc (x) (* x x)**  **-4**)))
+(sqrt (+ (square **-3**) (* **-4** **-4**)))
+(sqrt (+ (square **-3**) (**mul** **-4** **-4**)))
+(sqrt (+ (square **-3**) **16**))
+(sqrt (**add** (square **-3**) **16**))
+(sqrt (**add** (**proc (x) (* x x)** **-3**) **16**))
+(sqrt (**add** (* **-3** **-3**) **16**))
+(sqrt (**add** (**mul** **-3** **-3**) **16**))
+(sqrt (**add** **9** **16**))
+(sqrt **25**)
+(**sqrt** **25**)
+**5**
+</tt></pre>
+
+<h2><a name="appnor">Applicative and Normal Order</a></h2>
+
+<b>Applicative Order:</b> Evaluate the arguments and then apply the
+value of the first to the value of the rest.  Everything is evaluated,
+whether or not we use it.  This is the method Scheme uses and is the
+reason that we need special forms.
+<p>
+<b>Normal Order:</b> Fully expand, then reduce.  Don't evaluate operands until they are needed.
+
+How are these different?  Let's evaluate <tt>(sum-squares (+ 5 1) (* 6 2))</tt> using applicative order first:
+
+<pre><tt>
+(sum-squares (+ 5 1) (* 6 2))
+(sum-squares (+ **5** 1) (* 6 2))
+(sum-squares (**add** **5** 1) (* 6 2))
+(sum-squares (**add** **5** **1**) (* 6 2))
+(sum-squares **6** (* 6 2))
+(sum-squares **6** (**mul** 6 2))
+(sum-squares **6** (**mul** **6** 2))
+(sum-squares **6** (**mul** **6** **2**))
+(sum-squares **6** **12**)
+(**proc (x y) (+ (square x) (square y))** **6** **12**)
+(+ (square **6**) (square **12))
+(**add** (square **6**) (square **12))
+(**add** (square **6**) (**proc (x) (* x x)** **12))
+(**add** (square **6**) (* **12** **12))
+(**add** (square **6**) (**mul** **12** **12))
+(**add** (square **6**) **144**)
+(**add** (**proc (x) (* x x)** **6**) **144**)
+(**add** (* **6** **6**) **144**)
+(**add** (**mul** **6** **6**) **144**)
+(**add** **36** **144**)
+**180**
+</tt></pre>
+
+And now let's evaluate <tt>(sum-squares (+ 5 1) (* 6 2)</tt> using normal order:
+
+<pre><tt>
+(sum-squares (+ 5 1) (* 6 2))
+(**proc (x y) (+ (square x) (square y))** (+ 5 1) (* 6 2))
+(+ (square (+ 5 1)) (square (* 6 2)))
+(+ (**proc (x) (* x x)** (+ 5 1)) (square (* 6 2)))
+(+ (* (+ 5 1) (+ 5 1)) (square (* 6 2)))
+(+ (* (+ 5 1) (+ 5 1)) (**proc (x) (* x x)** (* 6 2)))
+(+ (* (+ 5 1) (+ 5 1)) (* (* 6 2) (* 6 2)))
+</tt></pre>
+
+Now that we have fully expanded, we can evaluate:
+
+<pre><tt>
+(+ (* (+ 5 1) (+ 5 1)) (* (* 6 2) (* 6 2)))
+(+ (* (**add** 5 1) (+ 5 1)) (* (* 6 2) (* 6 2)))
+(+ (* (**add** **5** 1) (+ 5 1)) (* (* 6 2) (* 6 2)))
+(+ (* (**add** **5** **1**) (+ 5 1)) (* (* 6 2) (* 6 2)))
+(+ (* **6** (+ 5 1)) (* (* 6 2) (* 6 2)))
+(+ (* **6** (+ 5 1)) (* (* **6** 2) (* 6 2)))
+(+ (* **6** (+ 5 1)) (* (**mul** **6** 2) (* 6 2)))
+(+ (* **6** (+ 5 1)) (* (**mul** **6** **2**) (* 6 2)))
+(+ (* **6** (+ 5 1)) (* **12** (* 6 2)))
+(+ (* **6** (+ 5 1)) (* **12** (* 6 **2**)))
+(+ (* **6** (+ 5 1)) (* **12** (* **6** **2**)))
+(+ (* **6** (+ 5 1)) (* **12** (**mul** **6** **2**)))
+(+ (* **6** (+ 5 1)) (* **12** **12**))
+(+ (* **6** (+ 5 1)) (**mul** **12** **12**))
+(+ (* **6** (+ 5 1)) **144**) 
+(+ (* **6** (+ **5** 1)) **144**) 
+(+ (* **6** (+ **5** **1**)) **144**) 
+(+ (* **6** (**add** **5** **1**)) **144**) 
+(+ (* **6** **6**) **144**) 
+(+ (**mul** **6** **6**) **144**) 
+(+ **36** **144**) 
+(**add** **36** **144**) 
+**180**
+</tt></pre>
+
+Normal order is not as efficient as applicative order.  We needed to evaluate <tt>(+ 5 1)</tt> and <tt>(* 6 2)</tt> twice each using normal order, instead of once each with applicative order. 
+
+How can we test if Scheme is applicative or normal order?
+
+<pre><tt>
+(define p (lambda () (p)))
+</tt></pre>
+
+What does this function do?  It calls itself repeatedly, causing an infinite loop.
+
+<pre><tt>
+(define test 
+   (lambda (x y)
+      (if (= x 0) 
+          0
+          y)))
+
+(test 0 (p))
+</tt></pre>
+
+What happens with applicative order?
+<p>
+We get an infinite loop
+<p>
+
+What happens with normal order?
+<p>
+It returns 0.
+<p>
+
+<h2><a name="if">Writing our own if</a></h2>
+
+What if <b>if</b> were not a special form?
+
+<pre><tt>
+(define new-if
+   (lambda (predicate consequent alternative)
+      (cond (predicate consequent)
+            (else alternative))))
+</tt></pre>
+
+What happens when we evaluate <tt>(new-if (> 3 2) 0 2)</tt>?
+
+<pre><tt>
+(new-if (> 3 2) 0 2)
+(new-if (> 3 2) **0** 2)
+(new-if (> 3 2) **0** **2**)
+(new-if (**less than** 3 2) **0** **2**)
+(new-if (**less than** 3 **2**) **0** **2**)
+(new-if (**less than** **3** **2**) **0** **2**)
+(new-if **true** **0** **2**)
+(**proc (pred cons alt) (cond (pred cons) (else alt))**  **true** **0** **2**)
+(cond (**true** **0**) (else **2**))
+**0**
+</tt></pre>
+
+No real problems so far.  Recall <tt>fact</tt> from Problem Set 1:
+
+<pre><tt>
+(define fact
+   (lambda (n)
+      (if (= n 0)
+          1
+          (* n (fact (- n 1))))))
+</tt></pre>
+
+What if we use new-if instead of the special form if?
+
+<pre><tt>
+(define fact
+   (lambda (n)
+      (new-if (= n 0)
+          1
+          (* n (fact (- n 1))))))
+</tt></pre>
+
+We'll get an infinite loop, since <tt>(* n (fact (- n 1)))</tt> will be evaluated every time, even if we have hit the base case.  You may want to follow the substitution model through to convince yourself of this.
+
+<p> <br clear=all> <p> 
+<hr> 
+
+<font size="-1">
+
+Last update: October 2000
+</font> 
+</body> 
+</html>
